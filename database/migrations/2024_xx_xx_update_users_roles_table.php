@@ -9,22 +9,35 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // تغيير enum للأدوار الجديدة
-            $table->dropColumn('role');
-        });
-        
-        Schema::table('users', function (Blueprint $table) {
-            $table->enum('role', ['user', 'government', 'investor', 'admin', 'super_admin'])->default('user')->after('email');
-            $table->string('avatar')->nullable()->after('role');
-            $table->string('organization')->nullable()->after('avatar');
-            $table->string('phone')->nullable()->after('organization');
+            // إضافة الأعمدة فقط إذا لم تكن موجودة
+            if (!Schema::hasColumn('users', 'avatar')) {
+                $table->string('avatar')->nullable()->after('role');
+            }
+            
+            if (!Schema::hasColumn('users', 'role')) {
+                $table->string('role')->default('user')->after('password');
+            }
+            
+            if (!Schema::hasColumn('users', 'organization')) {
+                $table->string('organization')->nullable()->after('avatar');
+            }
+            
+            if (!Schema::hasColumn('users', 'phone')) {
+                $table->string('phone')->nullable()->after('organization');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['avatar', 'organization', 'phone']);
+            $columns = ['avatar', 'role', 'organization', 'phone'];
+            
+            foreach ($columns as $column) {
+                if (Schema::hasColumn('users', $column)) {
+                    $table->dropColumn($column);
+                }
+            }
         });
     }
 };
