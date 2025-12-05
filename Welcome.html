@@ -1,0 +1,158 @@
+<template>
+  <div class="min-h-screen flex flex-col bg-white text-slate-900 dark:bg-gray-900 dark:text-gray-100" dir="rtl">
+    <!-- Top Navigation -->
+    <header class="border-b border-slate-200/80 bg-white/95 backdrop-blur-xl sticky top-0 z-30 dark:bg-gray-800">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between">
+        <!-- Logo and Title -->
+        <div class="flex items-center gap-3">
+          <div class="h-12 w-12 rounded-2xl bg-[#003366] text-white flex items-center justify-center text-lg font-bold">
+            أب
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 dark:text-gray-400">الخريطة الذكية الموحدة</p>
+            <h1 class="text-lg sm:text-xl font-bold text-[#003366] dark:text-white">Absher Spatial Intelligence</h1>
+          </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="flex-1 min-w-[280px]">
+          <SearchComponent @result-selected="handleSearchResult" />
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-2">
+          <button class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center dark:bg-gray-700 dark:border-gray-600">🔔</button>
+          <button class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center dark:bg-gray-700 dark:border-gray-600">⭐</button>
+          <button class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center dark:bg-gray-700 dark:border-gray-600">👤</button>
+          <button class="px-4 py-2 rounded-xl bg-[#003366] text-white font-semibold hover:bg-[#0b417a] dark:bg-gray-700 dark:hover:bg-gray-600">تسجيل الدخول</button>
+          <button class="px-4 py-2 rounded-xl bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200" @click="toggleDarkMode">
+            الوضع الليلي
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+      <!-- Hero Section -->
+      <section class="grid xl:grid-cols-12 gap-6">
+        <!-- Map Section -->
+        <div class="xl:col-span-8">
+          <div class="relative bg-gray-100 dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+            <MapComponent
+              :center="[46.6753, 24.7136]"
+              :zoom="12"
+              :layers="mapLayers"
+              class="h-[520px]"
+              @result-selected="handleSearchResult"
+            />
+          </div>
+        </div>
+
+        <!-- Sidebar Section -->
+        <div class="xl:col-span-4 space-y-4">
+          <div class="glass-card p-5 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="text-xs text-slate-500 dark:text-gray-400">الطبقات</p>
+                <h3 class="text-xl font-bold text-[#003366] dark:text-white">تحكم كامل بالبيانات</h3>
+              </div>
+              <button class="px-3 py-1 rounded-lg bg-[#003366] text-white text-sm hover:bg-[#0b417a] dark:bg-gray-700 dark:hover:bg-gray-600">إعادة ضبط</button>
+            </div>
+            <div class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+              <div
+                v-for="layer in mapLayers"
+                :key="layer.id"
+                class="flex items-center justify-between bg-slate-50 rounded-xl border border-slate-200 px-3 py-2 dark:bg-gray-700 dark:border-gray-600"
+              >
+                <div class="flex items-center gap-3">
+                  <span class="h-3 w-3 rounded-full" :class="layer.dot"></span>
+                  <div>
+                    <p class="font-semibold text-[#003366] dark:text-white">{{ layer.name }}</p>
+                    <p class="text-xs text-slate-500 dark:text-gray-400">{{ layer.meta }}</p>
+                  </div>
+                </div>
+                <label class="inline-flex items-center cursor-pointer">
+                  <input type="checkbox" v-model="layer.enabled" class="sr-only" />
+                  <span
+                    class="w-11 h-6 flex items-center bg-slate-200 rounded-full px-1 transition dark:bg-gray-600"
+                    :class="layer.enabled ? 'bg-[#003366]/70 dark:bg-gray-500' : 'bg-slate-200 dark:bg-gray-600'"
+                  >
+                    <span
+                      class="h-5 w-5 bg-white rounded-full shadow transform transition"
+                      :class="{ 'translate-x-5': layer.enabled }"
+                    ></span>
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</template>
+
+<script setup>
+import MapComponent from '../components/MapComponent.vue';
+import SearchComponent from '../components/SearchComponent.vue';
+
+const mapLayers = [
+  {
+    id: 'roads',
+    name: 'حالة الطرق',
+    meta: '63 مسار',
+    dot: 'bg-amber-400',
+    enabled: true,
+    type: 'geojson',
+    data: '/api/layers/roads',
+    layerType: 'line',
+    paint: {
+      'line-color': '#ff0000',
+      'line-width': 2,
+    },
+  },
+  {
+    id: 'traffic',
+    name: 'الازدحام اللحظي',
+    meta: '12 نقطة ضغط',
+    dot: 'bg-red-400',
+    enabled: true,
+    type: 'geojson',
+    data: '/api/layers/traffic',
+    layerType: 'circle',
+    paint: {
+      'circle-color': '#ffcc00',
+      'circle-radius': 5,
+    },
+  },
+];
+
+function handleSearchResult(result) {
+  console.log('Selected result:', result);
+  // Center the map on the selected result
+}
+
+function toggleDarkMode() {
+  const html = document.documentElement;
+  if (html.classList.contains('dark')) {
+    html.classList.remove('dark');
+    localStorage.setItem('theme', 'light');
+  } else {
+    html.classList.add('dark');
+    localStorage.setItem('theme', 'dark');
+  }
+}
+
+// Set initial theme based on localStorage
+if (localStorage.getItem('theme') === 'dark') {
+  document.documentElement.classList.add('dark');
+}
+</script>
+
+<style scoped>
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+}
+</style>

@@ -1,0 +1,56 @@
+@media (max-width: 768px) {
+  .map-container {
+    height: 300px;
+  }
+
+  .search-container {
+    width: 100%;
+    padding: 0 1rem;
+  }
+
+  .search-results {
+    max-height: 200px;
+  }
+
+  .popup-container {
+    width: 90%;
+    left: 5%;
+  }
+
+  .search-bar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+
+  .search-button {
+    width: 100%;
+  }
+}
+
+body.dark {
+  --color-primary: #1e293b;
+  --color-secondary-bg: #0f172a;
+  --color-muted-bg: #1e293b;
+  --color-text: #e2e8f0;
+  --color-success: #16a34a;
+  --color-danger: #ef4444;
+}
+
+body.dark .search-container {
+  background-color: var(--color-muted-bg);
+  color: var(--color-text);
+}
+
+body.dark .search-input {
+  background-color: var(--color-secondary-bg);
+  color: var(--color-text);
+}
+
+body.dark .search-results {
+  background-color: var(--color-secondary-bg);
+  color: var(--color-text);
+}

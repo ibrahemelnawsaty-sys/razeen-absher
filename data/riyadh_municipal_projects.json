@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "name": "مشروع تطوير طريق الملك فهد",
+        "type": "road",
+        "location": "من تقاطع العليا إلى حي الياسمين",
+        "status": "in_progress",
+        "contractor": "شركة بن لادن السعودية",
+        "completion": 65,
+        "remaining": "4 أشهر",
+        "lat": 24.72,
+        "lng": 46.68
+    },
+    {
+        "id": 2,
+        "name": "إنشاء حديقة الورود",
+        "type": "park",
+        "location": "حي الورود، شمال الرياض",
+        "status": "completed",
+        "contractor": "شركة العمران",
+        "completion": 85,
+        "remaining": "2 شهر",
+        "lat": 24.74,
+        "lng": 46.7
+    },
+    {
+        "id": 3,
+        "name": "صيانة شبكة الإنارة",
+        "type": "lighting",
+        "location": "طريق الملك خالد",
+        "status": "in_progress",
+        "contractor": "الشركة السعودية للكهرباء",
+        "completion": 40,
+        "remaining": "6 أشهر",
+        "lat": 24.71,
+        "lng": 46.67
+    }
+]

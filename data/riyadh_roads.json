@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "name": "طريق الملك فهد",
+        "name_en": "King Fahd Road",
+        "status": "moderate",
+        "speed": 45,
+        "incidents": 2,
+        "description": "حركة متوسطة مع بعض التباطؤ"
+    },
+    {
+        "id": 2,
+        "name": "طريق الملك عبدالله",
+        "name_en": "King Abdullah Road",
+        "status": "clear",
+        "speed": 80,
+        "incidents": 0,
+        "description": "الطريق سالك بدون ازدحام"
+    },
+    {
+        "id": 3,
+        "name": "شارع العليا",
+        "name_en": "Olaya Street",
+        "status": "maintenance",
+        "speed": 30,
+        "incidents": 1,
+        "description": "يوجد أعمال صيانة على الطريق"
+    },
+    {
+        "id": 4,
+        "name": "طريق الملك خالد",
+        "name_en": "King Khalid Road",
+        "status": "congested",
+        "speed": 15,
+        "incidents": 3,
+        "description": "ازدحام شديد - يفضل اختيار طريق بديل"
+    }
+]
