@@ -284,8 +284,8 @@ Route::get('/fix-roles-temp-123', function () {
 // ⚠️ Route مؤقت لتشغيل Migrations - احذفه بعد الاستخدام
 Route::get('/run-migrations-temp-456', function () {
     try {
-        \Artisan::call('migrate', ['--force' => true]);
-        $output = \Artisan::output();
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $output = \Illuminate\Support\Facades\Artisan::output();
         return '<pre style="direction:ltr; font-family:monospace; padding:20px; background:#1a1a2e; color:#0f0; font-size:14px;">✅ Migrations executed successfully!<br><br>' . nl2br($output) . '</pre>';
     } catch (\Exception $e) {
         return '<pre style="direction:ltr; font-family:monospace; padding:20px; background:#1a1a2e; color:#f00; font-size:14px;">❌ Error: ' . $e->getMessage() . '</pre>';
@@ -294,8 +294,8 @@ Route::get('/run-migrations-temp-456', function () {
 
 // Route مؤقت لمسح الكاش
 Route::get('/clear-cache-temp-789', function () {
-    \Artisan::call('cache:clear');
-    \Artisan::call('config:clear');
-    \Artisan::call('view:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('config:clear');
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
     return '<pre style="padding:20px; background:#1a1a2e; color:#0f0;">✅ Cache cleared!</pre>';
 });
