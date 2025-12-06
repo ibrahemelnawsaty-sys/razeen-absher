@@ -12,7 +12,10 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         
-        // التحقق من الأدوار وتوجيه المستخدم للوحة المناسبة
+        // Debug log
+        \Log::info('Dashboard: ' . $user->email . ' - Roles: ' . $user->getRoleNames()->implode(', '));
+        
+        // التحقق من الأدوار بالترتيب
         if ($user->hasRole('super_admin')) {
             return $this->superAdminDashboard();
         }
@@ -29,7 +32,6 @@ class DashboardController extends Controller
             return $this->investorDashboard();
         }
         
-        // Default: user dashboard
         return $this->userDashboard();
     }
     
@@ -38,13 +40,9 @@ class DashboardController extends Controller
         // إحصائيات شاملة
         $stats = [
             'total_users' => User::count(),
-            'total_services' => $this->getServicesCount(),
-            'total_projects' => $this->getProjectsCount(),
-            'total_incidents' => $this->getIncidentsCount(),
-            'government_entities' => User::where('role', 'government')->count(),
-            'investors' => User::where('role', 'investor')->count(),
-            'active_roads' => 8,
-            'maintenance_roads' => 2
+            'total_entities' => 15,
+            'total_reports' => 127,
+            'system_health' => 98,
         ];
         
         return view('dashboards.super-admin', compact('stats'));
@@ -53,10 +51,10 @@ class DashboardController extends Controller
     protected function governmentDashboard()
     {
         $stats = [
-            'pending_reports' => 15,
+            'pending_reports' => 38,
             'active_centers' => 8,
             'response_time' => '12 دقيقة',
-            'completed_today' => 23
+            'completed_today' => 15,
         ];
         
         return view('dashboards.government', compact('stats'));
@@ -68,7 +66,7 @@ class DashboardController extends Controller
             'analyzed_areas' => 12,
             'active_projects' => 5,
             'roi_prediction' => '18%',
-            'risk_level' => 'متوسط'
+            'risk_level' => 'منخفض',
         ];
         
         return view('dashboards.investor', compact('stats'));
@@ -78,9 +76,9 @@ class DashboardController extends Controller
     {
         $stats = [
             'nearby_services' => 8,
-            'traffic_status' => 'جيد',
+            'traffic_status' => 'سالك',
             'nearest_hospital' => '2.5 كم',
-            'average_wait_time' => '15 دقيقة'
+            'average_wait_time' => '15 دقيقة',
         ];
         
         return view('dashboards.user', compact('stats'));

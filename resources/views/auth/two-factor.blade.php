@@ -48,15 +48,9 @@
                         
                         <div class="flex justify-center gap-2" dir="ltr">
                             @for ($i = 0; $i < 6; $i++)
-                                <input 
-                                    type="text" 
-                                    maxlength="1" 
-                                    class="code-input w-12 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
-                                    data-index="{{ $i }}"
-                                    inputmode="numeric"
-                                    pattern="[0-9]"
-                                    autocomplete="off"
-                                >
+                                <input type="text" maxlength="1" 
+                                       class="code-input w-12 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
+                                       data-index="{{ $i }}" inputmode="numeric" pattern="[0-9]" autocomplete="off">
                             @endfor
                         </div>
                         
@@ -71,12 +65,8 @@
                     </div>
                     
                     <!-- Submit Button -->
-                    <button 
-                        type="submit" 
-                        class="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50"
-                        id="verify-btn"
-                        disabled
-                    >
+                    <button type="submit" id="verify-btn" disabled
+                            class="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50">
                         ✓ تحقق من الرمز
                     </button>
                 </form>
@@ -86,11 +76,7 @@
                     <p class="text-sm text-gray-500 mb-2">لم تستلم الرمز؟</p>
                     <form method="POST" action="{{ route('2fa.resend') }}" class="inline">
                         @csrf
-                        <button 
-                            type="submit" 
-                            class="text-indigo-600 hover:text-indigo-800 font-bold text-sm hover:underline"
-                            id="resend-btn"
-                        >
+                        <button type="submit" class="text-indigo-600 hover:text-indigo-800 font-bold text-sm hover:underline">
                             📧 إعادة إرسال الرمز
                         </button>
                     </form>
@@ -102,10 +88,8 @@
                         ← العودة لتسجيل الدخول
                     </a>
                 </div>
-                
             </div>
         </div>
-        
     </div>
 </div>
 
@@ -114,21 +98,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const inputs = document.querySelectorAll('.code-input');
     const fullCodeInput = document.getElementById('full-code');
     const verifyBtn = document.getElementById('verify-btn');
-    const form = document.getElementById('2fa-form');
     
-    // Focus first input
     inputs[0].focus();
     
-    // Handle input
     inputs.forEach((input, index) => {
         input.addEventListener('input', function(e) {
-            // Only allow numbers
             this.value = this.value.replace(/[^0-9]/g, '');
-            
             if (this.value.length === 1 && index < inputs.length - 1) {
                 inputs[index + 1].focus();
             }
-            
             updateFullCode();
         });
         
@@ -138,17 +116,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Handle paste
         input.addEventListener('paste', function(e) {
             e.preventDefault();
             const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '');
-            
             for (let i = 0; i < Math.min(pastedData.length, inputs.length); i++) {
                 inputs[i].value = pastedData[i];
             }
-            
             updateFullCode();
-            
             const nextIndex = Math.min(pastedData.length, inputs.length - 1);
             inputs[nextIndex].focus();
         });
@@ -162,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Timer
-    let timeLeft = 600; // 10 minutes
+    let timeLeft = 600;
     const timerElement = document.getElementById('timer');
     
     const countdown = setInterval(() => {
@@ -174,7 +148,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (timeLeft <= 0) {
             clearInterval(countdown);
             timerElement.textContent = 'منتهي';
-            timerElement.classList.remove('text-indigo-600');
             timerElement.classList.add('text-red-600');
         }
     }, 1000);
