@@ -6,9 +6,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
     @php
-        // استخدام المتغير المشترك أو جلب البيانات مباشرة
-        $seo = $seoSettings ?? null;
-        if (!$seo) {
+        // جلب بيانات SEO فقط للصفحات العامة (وليس صفحات الأدمن)
+        $seo = null;
+        $isAdminPage = request()->is('admin*') || request()->is('filament*');
+        
+        if (!$isAdminPage) {
             try {
                 $seo = \App\Models\SeoSetting::first();
             } catch (\Exception $e) {
@@ -19,111 +21,114 @@
     
     <!-- Primary Meta Tags -->
     <title>{{ $seo->site_title ?? config('app.name', 'رزين') }}</title>
-    <meta name="description" content="{{ $seo->meta_description ?? 'منصة رزين للخدمات الذكية' }}">
-    <meta name="keywords" content="{{ $seo->meta_keywords ?? '' }}">
-    <meta name="author" content="{{ $seo->business_name ?? 'رزين' }}">
     
-    @if($seo)
-        <meta name="robots" content="{{ ($seo->indexing_enabled ?? true) ? 'index' : 'noindex' }}, {{ ($seo->follow_links ?? true) ? 'follow' : 'nofollow' }}">
-    @else
-        <meta name="robots" content="index, follow">
-    @endif
-    
-    <!-- Canonical URL -->
-    <link rel="canonical" href="{{ url()->current() }}">
-    
-    <!-- Favicon -->
-    @if($seo && $seo->favicon)
-        <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . $seo->favicon) }}">
-        <link rel="shortcut icon" href="{{ asset('storage/' . $seo->favicon) }}">
-    @endif
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:title" content="{{ $seo->site_title ?? config('app.name') }}">
-    <meta property="og:description" content="{{ $seo->meta_description ?? '' }}">
-    <meta property="og:site_name" content="{{ $seo->business_name ?? config('app.name') }}">
-    <meta property="og:locale" content="ar_SA">
-    @if($seo && $seo->og_image)
-        <meta property="og:image" content="{{ asset('storage/' . $seo->og_image) }}">
-        <meta property="og:image:width" content="1200">
-        <meta property="og:image:height" content="630">
-    @endif
-    
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="{{ url()->current() }}">
-    <meta name="twitter:title" content="{{ $seo->site_title ?? config('app.name') }}">
-    <meta name="twitter:description" content="{{ $seo->meta_description ?? '' }}">
-    @if($seo && $seo->twitter_handle)
-        <meta name="twitter:site" content="@{{ $seo->twitter_handle }}">
-        <meta name="twitter:creator" content="@{{ $seo->twitter_handle }}">
-    @endif
-    @if($seo && $seo->og_image)
-        <meta name="twitter:image" content="{{ asset('storage/' . $seo->og_image) }}">
-    @endif
-    
-    <!-- Google Verification -->
-    @if($seo && $seo->google_site_verification)
-        <meta name="google-site-verification" content="{{ $seo->google_site_verification }}">
-    @endif
-    
-    <!-- Google Analytics -->
-    @if($seo && $seo->google_analytics_id)
-        <script async src="https://www.googletagmanager.com/gtag/js?id={{ $seo->google_analytics_id }}"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '{{ $seo->google_analytics_id }}');
-        </script>
-    @endif
-    
-    <!-- Google Tag Manager -->
-    @if($seo && $seo->google_tag_manager_id)
-        <script>
-            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','{{ $seo->google_tag_manager_id }}');
-        </script>
-    @endif
-    
-    <!-- Structured Data JSON-LD -->
-    @if($seo)
-        <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            "name": "{{ $seo->business_name ?? $seo->site_title ?? config('app.name') }}",
-            "url": "{{ config('app.url') }}",
-            "description": "{{ $seo->meta_description ?? '' }}"
-            @if($seo->logo)
-            ,"logo": "{{ asset('storage/' . $seo->logo) }}"
-            @endif
-            @if($seo->business_phone)
-            ,"telephone": "{{ $seo->business_phone }}"
-            @endif
-            @if($seo->business_email)
-            ,"email": "{{ $seo->business_email }}"
-            @endif
-            @if($seo->business_address || $seo->business_city)
-            ,"address": {
-                "@type": "PostalAddress",
-                "streetAddress": "{{ $seo->business_address ?? '' }}",
-                "addressLocality": "{{ $seo->business_city ?? '' }}",
-                "addressCountry": "{{ $seo->business_country ?? 'SA' }}"
+    @if(!$isAdminPage)
+        <meta name="description" content="{{ $seo->meta_description ?? 'منصة رزين للخدمات الذكية' }}">
+        <meta name="keywords" content="{{ $seo->meta_keywords ?? '' }}">
+        <meta name="author" content="{{ $seo->business_name ?? 'رزين' }}">
+        
+        @if($seo)
+            <meta name="robots" content="{{ ($seo->indexing_enabled ?? true) ? 'index' : 'noindex' }}, {{ ($seo->follow_links ?? true) ? 'follow' : 'nofollow' }}">
+        @else
+            <meta name="robots" content="index, follow">
+        @endif
+        
+        <!-- Canonical URL -->
+        <link rel="canonical" href="{{ url()->current() }}">
+        
+        <!-- Favicon -->
+        @if($seo && $seo->favicon)
+            <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . $seo->favicon) }}">
+            <link rel="shortcut icon" href="{{ asset('storage/' . $seo->favicon) }}">
+        @endif
+        
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta property="og:title" content="{{ $seo->site_title ?? config('app.name') }}">
+        <meta property="og:description" content="{{ $seo->meta_description ?? '' }}">
+        <meta property="og:site_name" content="{{ $seo->business_name ?? config('app.name') }}">
+        <meta property="og:locale" content="ar_SA">
+        @if($seo && $seo->og_image)
+            <meta property="og:image" content="{{ asset('storage/' . $seo->og_image) }}">
+            <meta property="og:image:width" content="1200">
+            <meta property="og:image:height" content="630">
+        @endif
+        
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:url" content="{{ url()->current() }}">
+        <meta name="twitter:title" content="{{ $seo->site_title ?? config('app.name') }}">
+        <meta name="twitter:description" content="{{ $seo->meta_description ?? '' }}">
+        @if($seo && $seo->twitter_handle)
+            <meta name="twitter:site" content="{{ '@' . $seo->twitter_handle }}">
+            <meta name="twitter:creator" content="{{ '@' . $seo->twitter_handle }}">
+        @endif
+        @if($seo && $seo->og_image)
+            <meta name="twitter:image" content="{{ asset('storage/' . $seo->og_image) }}">
+        @endif
+        
+        <!-- Google Verification -->
+        @if($seo && $seo->google_site_verification)
+            <meta name="google-site-verification" content="{{ $seo->google_site_verification }}">
+        @endif
+        
+        <!-- Google Analytics -->
+        @if($seo && $seo->google_analytics_id)
+            <script async src="https://www.googletagmanager.com/gtag/js?id={{ $seo->google_analytics_id }}"></script>
+            <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '{{ $seo->google_analytics_id }}');
+            </script>
+        @endif
+        
+        <!-- Google Tag Manager -->
+        @if($seo && $seo->google_tag_manager_id)
+            <script>
+                (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+                j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+                'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+                })(window,document,'script','dataLayer','{{ $seo->google_tag_manager_id }}');
+            </script>
+        @endif
+        
+        <!-- Structured Data JSON-LD -->
+        @if($seo)
+            <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "{{ $seo->business_name ?? $seo->site_title ?? config('app.name') }}",
+                "url": "{{ config('app.url') }}",
+                "description": "{{ $seo->meta_description ?? '' }}"
+                @if($seo->logo)
+                ,"logo": "{{ asset('storage/' . $seo->logo) }}"
+                @endif
+                @if($seo->business_phone)
+                ,"telephone": "{{ $seo->business_phone }}"
+                @endif
+                @if($seo->business_email)
+                ,"email": "{{ $seo->business_email }}"
+                @endif
+                @if($seo->business_address || $seo->business_city)
+                ,"address": {
+                    "@type": "PostalAddress",
+                    "streetAddress": "{{ $seo->business_address ?? '' }}",
+                    "addressLocality": "{{ $seo->business_city ?? '' }}",
+                    "addressCountry": "{{ $seo->business_country ?? 'SA' }}"
+                }
+                @endif
             }
-            @endif
-        }
-        </script>
-    @endif
-    
-    <!-- Custom Head Scripts -->
-    @if($seo && $seo->custom_head_scripts)
-        {!! $seo->custom_head_scripts !!}
+            </script>
+        @endif
+        
+        <!-- Custom Head Scripts -->
+        @if($seo && $seo->custom_head_scripts)
+            {!! $seo->custom_head_scripts !!}
+        @endif
     @endif
     
     <!-- Fonts -->
@@ -139,30 +144,30 @@
     
     <style>
         * { font-family: 'Cairo', sans-serif; }
-        [x-cloak] { display: none !important; }::-webkit-scrollbar-track { background: #f1f5f9; }
-         border-radius: 4px; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }3b8; }
+        [x-cloak] { display: none !important; }
         
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }styles')
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }ad>
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }ased bg-gray-100">
-    </style>($seo && $seo->google_tag_manager_id)
-    ipt) -->
-    @stack('styles')oogletagmanager.com/ns.html?id={{ $seo->google_tag_manager_id }}"
-</head>ne;visibility:hidden"></iframe></noscript>
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+    
+    @stack('styles')
+</head>
 <body class="antialiased bg-gray-100">
-    @if($seo && $seo->google_tag_manager_id)
-        <!-- Google Tag Manager (noscript) -->('content')
-        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $seo->google_tag_manager_id }}"    
-        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>Scripts -->
-    @endif@if($seo && $seo->custom_body_scripts)
-ripts !!}
+    @if(!$isAdminPage && $seo && $seo->google_tag_manager_id)
+        <!-- Google Tag Manager (noscript) -->
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $seo->google_tag_manager_id }}"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    @endif
+
     @yield('content')
     
-    <!-- Custom Body Scripts -->('scripts')
-    @if($seo && $seo->custom_body_scripts)dy>
+    <!-- Custom Body Scripts -->
+    @if(!$isAdminPage && $seo && $seo->custom_body_scripts)
         {!! $seo->custom_body_scripts !!}
-    @endif        @stack('scripts')
+    @endif
+    
+    @stack('scripts')
 </body>
 </html>
