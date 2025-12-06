@@ -6,18 +6,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
     @php
-        // جلب بيانات SEO فقط للصفحات العامة (وليس صفحات الأدمن)
-        $seo = null;
         $isAdminPage = request()->is('admin*') || request()->is('filament*');
-        
-        if (!$isAdminPage) {
-            try {
-                $seo = \App\Models\SeoSetting::first();
-                // للتشخيص - احذف هذا السطر بعد التأكد من عمل الكود
-                // \Log::info('SEO Data:', ['seo' => $seo ? $seo->toArray() : 'null']);
-            } catch (\Exception $e) {
-                \Log::error('SEO Error: ' . $e->getMessage());
-            }
+        // استخدام المتغير المشترك من SeoComposer أو جلبه مباشرة
+        if (!isset($seo) && !$isAdminPage) {
+            $seo = \App\Models\SeoSetting::first();
         }
     @endphp
     

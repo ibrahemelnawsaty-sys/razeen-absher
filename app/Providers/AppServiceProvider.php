@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Schema;
+use App\View\Composers\SeoComposer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -34,23 +35,16 @@ class AppServiceProvider extends ServiceProvider
             });
         }
         
-        // مشاركة بيانات SEO مع جميع الـ Views
-        View::composer('*', function ($view) {
-            static $seo = null;
-            static $loaded = false;
-            
-            if (!$loaded) {
-                try {
-                    if (Schema::hasTable('seo_settings')) {
-                        $seo = \App\Models\SeoSetting::first();
-                    }
-                } catch (\Exception $e) {
-                    \Log::error('SEO Loading Error: ' . $e->getMessage());
-                }
-                $loaded = true;
-            }
-            
-            $view->with('seoSettings', $seo);
-        });
+        // مشاركة بيانات SEO مع جميع الـ Views (ما عدا صفحات الأدمن)
+        View::composer([
+            'layouts.app',
+            'layouts.guest', 
+            'welcome',
+            'home',
+            'index',
+            'layouts.main',
+            'layouts.public',
+            // أضف أي layouts أخرى تستخدمها
+        ], SeoComposer::class);
     }
 }
