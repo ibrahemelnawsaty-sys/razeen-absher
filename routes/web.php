@@ -299,3 +299,22 @@ Route::get('/clear-cache-temp-789', function () {
     \Illuminate\Support\Facades\Artisan::call('view:clear');
     return '<pre style="padding:20px; background:#1a1a2e; color:#0f0;">✅ Cache cleared!</pre>';
 });
+
+// Route للتشخيص - احذفه بعد حل المشكلة
+Route::get('/debug-seo', function () {
+    $seo = \App\Models\SeoSetting::first();
+    
+    if (!$seo) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'No SEO record found',
+            'table_exists' => \Schema::hasTable('seo_settings'),
+            'count' => \App\Models\SeoSetting::count(),
+        ]);
+    }
+    
+    return response()->json([
+        'status' => 'success',
+        'data' => $seo->toArray(),
+    ]);
+});

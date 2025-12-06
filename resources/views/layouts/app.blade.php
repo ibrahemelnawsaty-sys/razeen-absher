@@ -13,19 +13,21 @@
         if (!$isAdminPage) {
             try {
                 $seo = \App\Models\SeoSetting::first();
+                // للتشخيص - احذف هذا السطر بعد التأكد من عمل الكود
+                // \Log::info('SEO Data:', ['seo' => $seo ? $seo->toArray() : 'null']);
             } catch (\Exception $e) {
-                // تجاهل الخطأ
+                \Log::error('SEO Error: ' . $e->getMessage());
             }
         }
     @endphp
     
     <!-- Primary Meta Tags -->
-    <title>{{ $seo->site_title ?? config('app.name', 'رزين') }}</title>
+    <title>{{ $seo?->site_title ?? config('app.name', 'رزين') }}</title>
     
     @if(!$isAdminPage)
-        <meta name="description" content="{{ $seo->meta_description ?? 'منصة رزين للخدمات الذكية' }}">
-        <meta name="keywords" content="{{ $seo->meta_keywords ?? '' }}">
-        <meta name="author" content="{{ $seo->business_name ?? 'رزين' }}">
+        <meta name="description" content="{{ $seo?->meta_description ?? 'منصة رزين للخدمات الذكية' }}">
+        <meta name="keywords" content="{{ $seo?->meta_keywords ?? '' }}">
+        <meta name="author" content="{{ $seo?->business_name ?? 'رزين' }}">
         
         @if($seo)
             <meta name="robots" content="{{ ($seo->indexing_enabled ?? true) ? 'index' : 'noindex' }}, {{ ($seo->follow_links ?? true) ? 'follow' : 'nofollow' }}">
@@ -37,7 +39,7 @@
         <link rel="canonical" href="{{ url()->current() }}">
         
         <!-- Favicon -->
-        @if($seo && $seo->favicon)
+        @if($seo?->favicon)
             <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . $seo->favicon) }}">
             <link rel="shortcut icon" href="{{ asset('storage/' . $seo->favicon) }}">
         @endif
@@ -45,11 +47,11 @@
         <!-- Open Graph / Facebook -->
         <meta property="og:type" content="website">
         <meta property="og:url" content="{{ url()->current() }}">
-        <meta property="og:title" content="{{ $seo->site_title ?? config('app.name') }}">
-        <meta property="og:description" content="{{ $seo->meta_description ?? '' }}">
-        <meta property="og:site_name" content="{{ $seo->business_name ?? config('app.name') }}">
+        <meta property="og:title" content="{{ $seo?->site_title ?? config('app.name') }}">
+        <meta property="og:description" content="{{ $seo?->meta_description ?? '' }}">
+        <meta property="og:site_name" content="{{ $seo?->business_name ?? config('app.name') }}">
         <meta property="og:locale" content="ar_SA">
-        @if($seo && $seo->og_image)
+        @if($seo?->og_image)
             <meta property="og:image" content="{{ asset('storage/' . $seo->og_image) }}">
             <meta property="og:image:width" content="1200">
             <meta property="og:image:height" content="630">
@@ -58,23 +60,23 @@
         <!-- Twitter -->
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:url" content="{{ url()->current() }}">
-        <meta name="twitter:title" content="{{ $seo->site_title ?? config('app.name') }}">
-        <meta name="twitter:description" content="{{ $seo->meta_description ?? '' }}">
-        @if($seo && $seo->twitter_handle)
+        <meta name="twitter:title" content="{{ $seo?->site_title ?? config('app.name') }}">
+        <meta name="twitter:description" content="{{ $seo?->meta_description ?? '' }}">
+        @if($seo?->twitter_handle)
             <meta name="twitter:site" content="{{ '@' . $seo->twitter_handle }}">
             <meta name="twitter:creator" content="{{ '@' . $seo->twitter_handle }}">
         @endif
-        @if($seo && $seo->og_image)
+        @if($seo?->og_image)
             <meta name="twitter:image" content="{{ asset('storage/' . $seo->og_image) }}">
         @endif
         
         <!-- Google Verification -->
-        @if($seo && $seo->google_site_verification)
+        @if($seo?->google_site_verification)
             <meta name="google-site-verification" content="{{ $seo->google_site_verification }}">
         @endif
         
         <!-- Google Analytics -->
-        @if($seo && $seo->google_analytics_id)
+        @if($seo?->google_analytics_id)
             <script async src="https://www.googletagmanager.com/gtag/js?id={{ $seo->google_analytics_id }}"></script>
             <script>
                 window.dataLayer = window.dataLayer || [];
@@ -85,7 +87,7 @@
         @endif
         
         <!-- Google Tag Manager -->
-        @if($seo && $seo->google_tag_manager_id)
+        @if($seo?->google_tag_manager_id)
             <script>
                 (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
                 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -126,7 +128,7 @@
         @endif
         
         <!-- Custom Head Scripts -->
-        @if($seo && $seo->custom_head_scripts)
+        @if($seo?->custom_head_scripts)
             {!! $seo->custom_head_scripts !!}
         @endif
     @endif
