@@ -8,11 +8,11 @@
     @php
         $seo = null;
         try {
-            if (class_exists('\App\Models\SeoSetting') && \Schema::hasTable('seo_settings')) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('seo_settings')) {
                 $seo = \App\Models\SeoSetting::first();
             }
         } catch (\Exception $e) {
-            // Table might not exist yet
+            // Table might not exist
         }
     @endphp
     
@@ -20,16 +20,21 @@
     <title>{{ $seo->site_title ?? config('app.name', 'رزين') }}</title>
     <meta name="description" content="{{ $seo->meta_description ?? 'منصة رزين للخدمات الذكية' }}">
     <meta name="keywords" content="{{ $seo->meta_keywords ?? '' }}">
+    <meta name="author" content="{{ $seo->business_name ?? 'رزين' }}">
     
     @if($seo)
-        <meta name="robots" content="{{ $seo->indexing_enabled ?? true ? 'index' : 'noindex' }}, {{ $seo->follow_links ?? true ? 'follow' : 'nofollow' }}">
+        <meta name="robots" content="{{ ($seo->indexing_enabled ?? true) ? 'index' : 'noindex' }}, {{ ($seo->follow_links ?? true) ? 'follow' : 'nofollow' }}">
     @else
         <meta name="robots" content="index, follow">
     @endif
     
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ url()->current() }}">
+    
     <!-- Favicon -->
     @if($seo && $seo->favicon)
         <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . $seo->favicon) }}">
+        <link rel="shortcut icon" href="{{ asset('storage/' . $seo->favicon) }}">
     @endif
     
     <!-- Open Graph / Facebook -->
@@ -37,20 +42,25 @@
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:title" content="{{ $seo->site_title ?? config('app.name') }}">
     <meta property="og:description" content="{{ $seo->meta_description ?? '' }}">
+    <meta property="og:site_name" content="{{ $seo->business_name ?? config('app.name') }}">
+    <meta property="og:locale" content="ar_SA">
     @if($seo && $seo->og_image)
         <meta property="og:image" content="{{ asset('storage/' . $seo->og_image) }}">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
     @endif
     
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="{{ url()->current() }}">
-    <meta property="twitter:title" content="{{ $seo->site_title ?? config('app.name') }}">
-    <meta property="twitter:description" content="{{ $seo->meta_description ?? '' }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{{ url()->current() }}">
+    <meta name="twitter:title" content="{{ $seo->site_title ?? config('app.name') }}">
+    <meta name="twitter:description" content="{{ $seo->meta_description ?? '' }}">
     @if($seo && $seo->twitter_handle)
-        <meta property="twitter:site" content="@{{ $seo->twitter_handle }}">
+        <meta name="twitter:site" content="@{{ $seo->twitter_handle }}">
+        <meta name="twitter:creator" content="@{{ $seo->twitter_handle }}">
     @endif
     @if($seo && $seo->og_image)
-        <meta property="twitter:image" content="{{ asset('storage/' . $seo->og_image) }}">
+        <meta name="twitter:image" content="{{ asset('storage/' . $seo->og_image) }}">
     @endif
     
     <!-- Google Verification -->
@@ -88,24 +98,22 @@
             "@type": "Organization",
             "name": "{{ $seo->business_name ?? $seo->site_title ?? config('app.name') }}",
             "url": "{{ config('app.url') }}",
-            @if($seo->logo)
-            "logo": "{{ asset('storage/' . $seo->logo) }}",
-            @endif
             "description": "{{ $seo->meta_description ?? '' }}"
-            @if($seo->business_phone || $seo->business_email)
-            ,"contactPoint": {
-                "@type": "ContactPoint",
-                "telephone": "{{ $seo->business_phone ?? '' }}",
-                "email": "{{ $seo->business_email ?? '' }}",
-                "contactType": "customer service"
-            }
+            @if($seo->logo)
+            ,"logo": "{{ asset('storage/' . $seo->logo) }}"
+            @endif
+            @if($seo->business_phone)
+            ,"telephone": "{{ $seo->business_phone }}"
+            @endif
+            @if($seo->business_email)
+            ,"email": "{{ $seo->business_email }}"
             @endif
             @if($seo->business_address || $seo->business_city)
             ,"address": {
                 "@type": "PostalAddress",
                 "streetAddress": "{{ $seo->business_address ?? '' }}",
                 "addressLocality": "{{ $seo->business_city ?? '' }}",
-                "addressCountry": "{{ $seo->business_country ?? 'Saudi Arabia' }}"
+                "addressCountry": "{{ $seo->business_country ?? 'SA' }}"
             }
             @endif
         }
