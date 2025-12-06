@@ -193,7 +193,7 @@
                     <div>
                         <span class="text-xl font-black text-gray-800">{{ $seo?->business_name ?? 'رزين' }}</span>
                         @if($seo?->site_tagline)
-                            <p class="text-xs text-gray-500">{{ Str::limit($seo->site_tagline, 30) }}</p>
+                            <p class="text-xs text-gray-500">{{ \Illuminate\Support\Str::limit($seo->site_tagline, 30) }}</p>
                         @endif
                     </div>
                 </a>
@@ -645,7 +645,7 @@
                     <h3 class="font-bold text-gray-800 mb-2">العنوان</h3>
                     <p class="text-gray-600">{{ $seo->business_city }}</p>
                     @if($seo->business_address)
-                        <p class="text-gray-500 text-sm mt-1">{{ Str::limit($seo->business_address, 50) }}</p>
+                        <p class="text-gray-500 text-sm mt-1">{{ \Illuminate\Support\Str::limit($seo->business_address, 50) }}</p>
                     @endif
                 </div>
                 @endif
