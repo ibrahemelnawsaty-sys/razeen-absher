@@ -8,6 +8,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\EntityController;
 use App\Http\Controllers\Auth\TwoFactorController;
+use App\Http\Controllers\Admin\SeoController;
 
 // Public Routes
 Route::get('/', function () {
@@ -131,6 +132,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/reports/advanced', function () {
             return view('admin.reports.advanced');
         })->name('reports.advanced');
+        
+        // SEO Management
+        Route::get('/seo', [SeoController::class, 'index'])->name('seo.index');
+        Route::put('/seo/general', [SeoController::class, 'updateGeneral'])->name('seo.update.general');
+        Route::put('/seo/images', [SeoController::class, 'updateImages'])->name('seo.update.images');
+        Route::put('/seo/social', [SeoController::class, 'updateSocial'])->name('seo.update.social');
+        Route::put('/seo/google', [SeoController::class, 'updateGoogle'])->name('seo.update.google');
+        Route::put('/seo/advanced', [SeoController::class, 'updateAdvanced'])->name('seo.update.advanced');
+        Route::post('/seo/pages', [SeoController::class, 'storePage'])->name('seo.pages.store');
+        Route::delete('/seo/pages/{id}', [SeoController::class, 'destroyPage'])->name('seo.pages.destroy');
     });
     
     // Super Admin Routes
@@ -216,3 +227,56 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+// Public SEO Routes
+Route::get('/sitemap.xml', [SeoController::class, 'generateSitemap']);
+Route::get('/robots.txt', [SeoController::class, 'robotsTxt']);
+
+// Storage fallback route (for hosts where symlink fails)
+Route::get('/storage/{path}', function ($path) {
+    $filePath = storage_path('app/public/' . $path);
+    
+    if (!file_exists($filePath)) {
+        abort(404);
+    }
+    
+    return response()->file($filePath);
+})->where('path', '.*')->name('storage.serve');
+
+// ⚠️ Route مؤقت لإصلاح الأدوار - احذفه بعد الاستخدام
+Route::get('/fix-roles-temp-123', function () {
+    $results = [];
+    
+    // إنشاء الأدوار
+    $roles = ['super_admin', 'admin', 'government', 'investor', 'user'];
+    foreach ($roles as $roleName) {
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
+        $results[] = "✅ Role created/exists: {$roleName}";
+    }
+    
+    // قائمة المستخدمين وأدوارهم
+    $users = [
+        'superadmin@aabsher.tech' => 'super_admin',
+        'admin@aabsher.tech' => 'admin',
+        'government@aabsher.tech' => 'government',
+        'investor@aabsher.tech' => 'investor',
+        'user@aabsher.tech' => 'user',
+    ];
+    
+    foreach ($users as $email => $role) {
+        $user = \App\Models\User::where('email', $email)->first();
+        if ($user) {
+            $user->syncRoles([$role]);
+            $currentRoles = $user->getRoleNames()->implode(', ');
+            $results[] = "✅ {$email} => {$currentRoles}";
+        } else {
+            $results[] = "❌ User not found: {$email}";
+        }
+    }
+    
+    // مسح كاش الصلاحيات
+    app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+    $results[] = "✅ Permission cache cleared";
+    
+    return '<pre style="direction:ltr; font-family:monospace; padding:20px; background:#1a1a2e; color:#0f0; font-size:14px;">' . implode("\n", $results) . '</pre>';
+});

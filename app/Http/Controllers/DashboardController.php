@@ -12,18 +12,28 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         
-        // توجيه المستخدم لـ Dashboard المناسب حسب دوره
-        return match($user->role) {
-            'super_admin' => $this->superAdminDashboard(),
-            'admin' => $this->adminDashboard(),
-            'government' => $this->governmentDashboard(),
-            'investor' => $this->investorDashboard(),
-            'user' => $this->userDashboard(),
-            default => $this->userDashboard()
-        };
+        // التحقق من الأدوار وتوجيه المستخدم للوحة المناسبة
+        if ($user->hasRole('super_admin')) {
+            return $this->superAdminDashboard();
+        }
+        
+        if ($user->hasRole('admin')) {
+            return $this->adminDashboard();
+        }
+        
+        if ($user->hasRole('government')) {
+            return $this->governmentDashboard();
+        }
+        
+        if ($user->hasRole('investor')) {
+            return $this->investorDashboard();
+        }
+        
+        // Default: user dashboard
+        return $this->userDashboard();
     }
     
-    private function superAdminDashboard()
+    protected function superAdminDashboard()
     {
         // إحصائيات شاملة
         $stats = [
@@ -40,7 +50,7 @@ class DashboardController extends Controller
         return view('dashboards.super-admin', compact('stats'));
     }
     
-    private function governmentDashboard()
+    protected function governmentDashboard()
     {
         $stats = [
             'pending_reports' => 15,
@@ -52,7 +62,7 @@ class DashboardController extends Controller
         return view('dashboards.government', compact('stats'));
     }
     
-    private function investorDashboard()
+    protected function investorDashboard()
     {
         $stats = [
             'analyzed_areas' => 12,
@@ -64,7 +74,7 @@ class DashboardController extends Controller
         return view('dashboards.investor', compact('stats'));
     }
     
-    private function userDashboard()
+    protected function userDashboard()
     {
         $stats = [
             'nearby_services' => 8,
@@ -76,9 +86,15 @@ class DashboardController extends Controller
         return view('dashboards.user', compact('stats'));
     }
     
-    private function adminDashboard()
+    protected function adminDashboard()
     {
-        return $this->superAdminDashboard(); // نفس الصلاحيات مؤقتاً
+        $stats = [
+            'total_users' => User::count(),
+            'pending_reports' => 38,
+            'completed_reports' => 89,
+        ];
+        
+        return view('dashboards.admin', compact('stats'));
     }
     
     private function getServicesCount()

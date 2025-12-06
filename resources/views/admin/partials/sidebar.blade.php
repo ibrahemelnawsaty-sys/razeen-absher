@@ -41,6 +41,12 @@
             <span class="font-bold">التقارير المتقدمة</span>
         </a>
         
+        <!-- SEO Link -->
+        <a href="{{ route('admin.seo.index') }}" class="flex items-center gap-3 px-4 py-3 {{ request()->routeIs('admin.seo.*') ? 'bg-white/20 backdrop-blur-lg' : '' }} rounded-xl hover:bg-white/10 transition-all">
+            <span class="text-2xl">🔍</span>
+            <span class="font-bold">إعدادات SEO</span>
+        </a>
+        
         <div class="pt-4 border-t border-white/10 mt-4">
             <p class="text-xs text-indigo-300 px-4 mb-2 font-bold">الإعدادات</p>
             

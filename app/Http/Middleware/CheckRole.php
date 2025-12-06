@@ -10,14 +10,20 @@ class CheckRole
 {
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        if (!$request->user()) {
+        if (!auth()->check()) {
             return redirect()->route('login');
         }
+
+        $user = auth()->user();
         
-        if (!in_array($request->user()->role, $roles)) {
-            abort(403, 'غير مصرح لك بالوصول لهذه الصفحة');
+        // التحقق من الأدوار المسموحة
+        foreach ($roles as $role) {
+            if ($user->hasRole($role)) {
+                return $next($request);
+            }
         }
         
-        return $next($request);
+        // إذا لم يكن لديه الصلاحية
+        abort(403, 'ليس لديك صلاحية للوصول لهذه الصفحة');
     }
 }
