@@ -4,10 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SeoSetting;
-use App\Models\PageSeo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class SeoController extends Controller
 {
@@ -17,7 +15,7 @@ class SeoController extends Controller
     public function index()
     {
         $seo = SeoSetting::first() ?? new SeoSetting();
-        $pages = PageSeo::orderBy('page_slug')->get();
+        $pages = collect([]); // PageSeo::orderBy('page_slug')->get();
         
         return view('admin.seo.index', compact('seo', 'pages'));
     }
@@ -42,7 +40,7 @@ class SeoController extends Controller
 
         $seo = SeoSetting::firstOrCreate([]);
         $seo->update($validated);
-        SeoSetting::clearCache();
+        SeoSetting::clearCache(); // ✅ مسح الكاش
 
         return back()->with('success', 'تم تحديث الإعدادات الأساسية بنجاح');
     }
@@ -55,7 +53,7 @@ class SeoController extends Controller
         $request->validate([
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,svg,webp|max:2048',
             'logo_dark' => 'nullable|image|mimes:png,jpg,jpeg,svg,webp|max:2048',
-            'favicon' => 'nullable|image|mimes:ico,png|max:512',
+            'favicon' => 'nullable|mimes:ico,png|max:512',
             'og_image' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
         ]);
 
@@ -65,7 +63,7 @@ class SeoController extends Controller
             if ($request->hasFile($field)) {
                 // Delete old file
                 if ($seo->$field) {
-                    Storage::delete($seo->$field);
+                    Storage::disk('public')->delete($seo->$field);
                 }
                 
                 $path = $request->file($field)->store('seo', 'public');
@@ -74,7 +72,7 @@ class SeoController extends Controller
         }
 
         $seo->save();
-        SeoSetting::clearCache();
+        SeoSetting::clearCache(); // ✅ مسح الكاش
 
         return back()->with('success', 'تم تحديث الصور بنجاح');
     }
@@ -94,7 +92,7 @@ class SeoController extends Controller
 
         $seo = SeoSetting::firstOrCreate([]);
         $seo->update($validated);
-        SeoSetting::clearCache();
+        SeoSetting::clearCache(); // ✅ مسح الكاش
 
         return back()->with('success', 'تم تحديث روابط السوشيال ميديا بنجاح');
     }
@@ -113,7 +111,7 @@ class SeoController extends Controller
 
         $seo = SeoSetting::firstOrCreate([]);
         $seo->update($validated);
-        SeoSetting::clearCache();
+        SeoSetting::clearCache(); // ✅ مسح الكاش
 
         return back()->with('success', 'تم تحديث إعدادات Google بنجاح');
     }
@@ -127,21 +125,68 @@ class SeoController extends Controller
             'robots_txt' => 'nullable|string|max:5000',
             'custom_head_scripts' => 'nullable|string|max:10000',
             'custom_body_scripts' => 'nullable|string|max:10000',
-            'structured_data' => 'nullable|json|max:10000',
+            'structured_data' => 'nullable|string|max:10000',
             'sitemap_enabled' => 'boolean',
             'sitemap_frequency' => 'nullable|in:always,hourly,daily,weekly,monthly,yearly,never',
             'sitemap_priority' => 'nullable|numeric|between:0,1',
             'indexing_enabled' => 'boolean',
             'follow_links' => 'boolean',
         ]);
+        
+        // تحويل checkboxes
+        $validated['sitemap_enabled'] = $request->has('sitemap_enabled');
+        $validated['indexing_enabled'] = $request->has('indexing_enabled');
+        $validated['follow_links'] = $request->has('follow_links');
 
         $seo = SeoSetting::firstOrCreate([]);
         $seo->update($validated);
-        SeoSetting::clearCache();
+        SeoSetting::clearCache(); // ✅ مسح الكاش
 
         return back()->with('success', 'تم تحديث الإعدادات المتقدمة بنجاح');
     }
 
+    /**
+     * توليد sitemap.xml
+     */
+    public function generateSitemap()
+    {
+        $seo = SeoSetting::getCached();
+        
+        $urls = [
+            ['loc' => url('/'), 'priority' => '1.0', 'changefreq' => 'daily'],
+            ['loc' => url('/login'), 'priority' => '0.5', 'changefreq' => 'monthly'],
+            ['loc' => url('/register'), 'priority' => '0.5', 'changefreq' => 'monthly'],
+        ];
+
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        
+        foreach ($urls as $url) {
+            $xml .= '  <url>' . "\n";
+            $xml .= '    <loc>' . htmlspecialchars($url['loc']) . '</loc>' . "\n";
+            $xml .= '    <lastmod>' . now()->toW3cString() . '</lastmod>' . "\n";
+            $xml .= '    <changefreq>' . $url['changefreq'] . '</changefreq>' . "\n";
+            $xml .= '    <priority>' . $url['priority'] . '</priority>' . "\n";
+            $xml .= '  </url>' . "\n";
+        }
+        
+        $xml .= '</urlset>';
+
+        return response($xml, 200, [
+            'Content-Type' => 'application/xml'
+        ]);
+    }
+
+    /**
+     * توليد robots.txt
+     */
+    public function robotsTxt()
+    {
+        $seo = SeoSetting::getCached();
+        $content = $seo->robots_txt ?? "User-agent: *\nAllow: /\n\nSitemap: " . url('/sitemap.xml');
+        return response($content, 200, ['Content-Type' => 'text/plain']);
+    }
+    
     /**
      * إدارة SEO للصفحات
      */
@@ -204,57 +249,5 @@ class SeoController extends Controller
         $page->delete();
 
         return back()->with('success', 'تم حذف إعدادات SEO للصفحة');
-    }
-
-    /**
-     * توليد sitemap.xml
-     */
-    public function generateSitemap()
-    {
-        $seo = SeoSetting::getCached();
-        
-        if (!$seo || !$seo->sitemap_enabled) {
-            abort(404);
-        }
-
-        $urls = [
-            ['loc' => url('/'), 'priority' => '1.0', 'changefreq' => 'daily'],
-            ['loc' => url('/login'), 'priority' => '0.5', 'changefreq' => 'monthly'],
-            ['loc' => url('/register'), 'priority' => '0.5', 'changefreq' => 'monthly'],
-            ['loc' => url('/privacy-policy'), 'priority' => '0.3', 'changefreq' => 'yearly'],
-            ['loc' => url('/terms-conditions'), 'priority' => '0.3', 'changefreq' => 'yearly'],
-        ];
-
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
-        
-        foreach ($urls as $url) {
-            $xml .= '  <url>' . "\n";
-            $xml .= '    <loc>' . htmlspecialchars($url['loc']) . '</loc>' . "\n";
-            $xml .= '    <lastmod>' . now()->toW3cString() . '</lastmod>' . "\n";
-            $xml .= '    <changefreq>' . $url['changefreq'] . '</changefreq>' . "\n";
-            $xml .= '    <priority>' . $url['priority'] . '</priority>' . "\n";
-            $xml .= '  </url>' . "\n";
-        }
-        
-        $xml .= '</urlset>';
-
-        return response($xml, 200, [
-            'Content-Type' => 'application/xml'
-        ]);
-    }
-
-    /**
-     * توليد robots.txt
-     */
-    public function robotsTxt()
-    {
-        $seo = SeoSetting::getCached();
-        
-        $content = $seo->robots_txt ?? "User-agent: *\nAllow: /\n\nSitemap: " . url('/sitemap.xml');
-
-        return response($content, 200, [
-            'Content-Type' => 'text/plain'
-        ]);
     }
 }
