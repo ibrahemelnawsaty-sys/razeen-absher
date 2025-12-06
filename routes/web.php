@@ -280,3 +280,22 @@ Route::get('/fix-roles-temp-123', function () {
     
     return '<pre style="direction:ltr; font-family:monospace; padding:20px; background:#1a1a2e; color:#0f0; font-size:14px;">' . implode("\n", $results) . '</pre>';
 });
+
+// ⚠️ Route مؤقت لتشغيل Migrations - احذفه بعد الاستخدام
+Route::get('/run-migrations-temp-456', function () {
+    try {
+        \Artisan::call('migrate', ['--force' => true]);
+        $output = \Artisan::output();
+        return '<pre style="direction:ltr; font-family:monospace; padding:20px; background:#1a1a2e; color:#0f0; font-size:14px;">✅ Migrations executed successfully!<br><br>' . nl2br($output) . '</pre>';
+    } catch (\Exception $e) {
+        return '<pre style="direction:ltr; font-family:monospace; padding:20px; background:#1a1a2e; color:#f00; font-size:14px;">❌ Error: ' . $e->getMessage() . '</pre>';
+    }
+});
+
+// Route مؤقت لمسح الكاش
+Route::get('/clear-cache-temp-789', function () {
+    \Artisan::call('cache:clear');
+    \Artisan::call('config:clear');
+    \Artisan::call('view:clear');
+    return '<pre style="padding:20px; background:#1a1a2e; color:#0f0;">✅ Cache cleared!</pre>';
+});
