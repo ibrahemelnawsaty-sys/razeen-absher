@@ -6,13 +6,14 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
     @php
-        $seo = null;
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('seo_settings')) {
+        // استخدام المتغير المشترك أو جلب البيانات مباشرة
+        $seo = $seoSettings ?? null;
+        if (!$seo) {
+            try {
                 $seo = \App\Models\SeoSetting::first();
+            } catch (\Exception $e) {
+                // تجاهل الخطأ
             }
-        } catch (\Exception $e) {
-            // Table might not exist
         }
     @endphp
     
@@ -138,30 +139,30 @@
     
     <style>
         * { font-family: 'Cairo', sans-serif; }
-        [x-cloak] { display: none !important; }
+        [x-cloak] { display: none !important; }::-webkit-scrollbar-track { background: #f1f5f9; }
+         border-radius: 4px; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }3b8; }
         
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    </style>
-    
-    @stack('styles')
-</head>
+        ::-webkit-scrollbar-track { background: #f1f5f9; }styles')
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }ad>
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }ased bg-gray-100">
+    </style>($seo && $seo->google_tag_manager_id)
+    ipt) -->
+    @stack('styles')oogletagmanager.com/ns.html?id={{ $seo->google_tag_manager_id }}"
+</head>ne;visibility:hidden"></iframe></noscript>
 <body class="antialiased bg-gray-100">
     @if($seo && $seo->google_tag_manager_id)
-        <!-- Google Tag Manager (noscript) -->
-        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $seo->google_tag_manager_id }}"
-        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    @endif
-
+        <!-- Google Tag Manager (noscript) -->('content')
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $seo->google_tag_manager_id }}"    
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>Scripts -->
+    @endif@if($seo && $seo->custom_body_scripts)
+ripts !!}
     @yield('content')
     
-    <!-- Custom Body Scripts -->
-    @if($seo && $seo->custom_body_scripts)
+    <!-- Custom Body Scripts -->('scripts')
+    @if($seo && $seo->custom_body_scripts)dy>
         {!! $seo->custom_body_scripts !!}
-    @endif
-    
-    @stack('scripts')
+    @endif        @stack('scripts')
 </body>
 </html>
