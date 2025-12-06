@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
@@ -13,7 +14,7 @@ class DashboardController extends Controller
         $user = auth()->user();
         
         // Debug log
-        \Log::info('Dashboard: ' . $user->email . ' - Roles: ' . $user->getRoleNames()->implode(', '));
+        Log::info('Dashboard: ' . $user->email . ' - Roles: ' . $user->getRoleNames()->implode(', '));
         
         // التحقق من الأدوار بالترتيب
         if ($user->hasRole('super_admin')) {
