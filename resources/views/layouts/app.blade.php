@@ -6,14 +6,26 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
     @php
-        $seo = \App\Models\SeoSetting::getCached();
+        $seo = null;
+        try {
+            if (class_exists('\App\Models\SeoSetting') && \Schema::hasTable('seo_settings')) {
+                $seo = \App\Models\SeoSetting::first();
+            }
+        } catch (\Exception $e) {
+            // Table might not exist yet
+        }
     @endphp
     
     <!-- Primary Meta Tags -->
     <title>{{ $seo->site_title ?? config('app.name', 'رزين') }}</title>
-    <meta name="description" content="{{ $seo->meta_description ?? '' }}">
+    <meta name="description" content="{{ $seo->meta_description ?? 'منصة رزين للخدمات الذكية' }}">
     <meta name="keywords" content="{{ $seo->meta_keywords ?? '' }}">
-    <meta name="robots" content="{{ $seo->robots_meta ?? 'index, follow' }}">
+    
+    @if($seo)
+        <meta name="robots" content="{{ $seo->indexing_enabled ?? true ? 'index' : 'noindex' }}, {{ $seo->follow_links ?? true ? 'follow' : 'nofollow' }}">
+    @else
+        <meta name="robots" content="index, follow">
+    @endif
     
     <!-- Favicon -->
     @if($seo && $seo->favicon)
@@ -31,8 +43,14 @@
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ url()->current() }}">
+    <meta property="twitter:title" content="{{ $seo->site_title ?? config('app.name') }}">
+    <meta property="twitter:description" content="{{ $seo->meta_description ?? '' }}">
     @if($seo && $seo->twitter_handle)
         <meta property="twitter:site" content="@{{ $seo->twitter_handle }}">
+    @endif
+    @if($seo && $seo->og_image)
+        <meta property="twitter:image" content="{{ asset('storage/' . $seo->og_image) }}">
     @endif
     
     <!-- Google Verification -->
@@ -62,7 +80,7 @@
         </script>
     @endif
     
-    <!-- Structured Data -->
+    <!-- Structured Data JSON-LD -->
     @if($seo)
         <script type="application/ld+json">
         {
@@ -73,30 +91,23 @@
             @if($seo->logo)
             "logo": "{{ asset('storage/' . $seo->logo) }}",
             @endif
-            "description": "{{ $seo->meta_description ?? '' }}",
-            "address": {
-                "@type": "PostalAddress",
-                "addressLocality": "{{ $seo->business_city ?? '' }}",
-                "addressCountry": "{{ $seo->business_country ?? 'Saudi Arabia' }}",
-                "streetAddress": "{{ $seo->business_address ?? '' }}"
-            },
-            "contactPoint": {
+            "description": "{{ $seo->meta_description ?? '' }}"
+            @if($seo->business_phone || $seo->business_email)
+            ,"contactPoint": {
                 "@type": "ContactPoint",
                 "telephone": "{{ $seo->business_phone ?? '' }}",
                 "email": "{{ $seo->business_email ?? '' }}",
                 "contactType": "customer service"
-            },
-            "sameAs": [
-                @if($seo->facebook_url)"{{ $seo->facebook_url }}"@endif
-                @if($seo->facebook_url && $seo->twitter_handle),@endif
-                @if($seo->twitter_handle)"https://twitter.com/{{ $seo->twitter_handle }}"@endif
-                @if(($seo->facebook_url || $seo->twitter_handle) && $seo->instagram_url),@endif
-                @if($seo->instagram_url)"{{ $seo->instagram_url }}"@endif
-                @if(($seo->facebook_url || $seo->twitter_handle || $seo->instagram_url) && $seo->linkedin_url),@endif
-                @if($seo->linkedin_url)"{{ $seo->linkedin_url }}"@endif
-                @if(($seo->facebook_url || $seo->twitter_handle || $seo->instagram_url || $seo->linkedin_url) && $seo->youtube_url),@endif
-                @if($seo->youtube_url)"{{ $seo->youtube_url }}"@endif
-            ]
+            }
+            @endif
+            @if($seo->business_address || $seo->business_city)
+            ,"address": {
+                "@type": "PostalAddress",
+                "streetAddress": "{{ $seo->business_address ?? '' }}",
+                "addressLocality": "{{ $seo->business_city ?? '' }}",
+                "addressCountry": "{{ $seo->business_country ?? 'Saudi Arabia' }}"
+            }
+            @endif
         }
         </script>
     @endif
@@ -121,12 +132,13 @@
         * { font-family: 'Cairo', sans-serif; }
         [x-cloak] { display: none !important; }
         
-        /* Custom scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
+    
+    @stack('styles')
 </head>
 <body class="antialiased bg-gray-100">
     @if($seo && $seo->google_tag_manager_id)
@@ -141,5 +153,7 @@
     @if($seo && $seo->custom_body_scripts)
         {!! $seo->custom_body_scripts !!}
     @endif
+    
+    @stack('scripts')
 </body>
 </html>

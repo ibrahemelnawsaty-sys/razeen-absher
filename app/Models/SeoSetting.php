@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 
 class SeoSetting extends Model
 {
+    protected $table = 'seo_settings';
+    
     protected $fillable = [
         'site_title',
         'site_tagline',
@@ -47,17 +49,24 @@ class SeoSetting extends Model
         'sitemap_enabled' => 'boolean',
         'indexing_enabled' => 'boolean',
         'follow_links' => 'boolean',
-        'sitemap_priority' => 'decimal:1',
     ];
 
     /**
-     * Get cached SEO settings
+     * Get cached SEO settings with fallback
      */
     public static function getCached(): ?self
     {
-        return Cache::remember('seo_settings', 3600, function () {
-            return self::first();
-        });
+        try {
+            if (!Schema::hasTable('seo_settings')) {
+                return null;
+            }
+            
+            return Cache::remember('seo_settings', 3600, function () {
+                return self::first();
+            });
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     /**
@@ -69,19 +78,36 @@ class SeoSetting extends Model
     }
 
     /**
+     * Boot method to clear cache on save
+     */
+    protected static function booted()
+    {
+        static::saved(function ($model) {
+            self::clearCache();
+        });
+        
+        static::deleted(function ($model) {
+            self::clearCache();
+        });
+    }
+
+    /**
+     * Get robots meta tag
+     */
+    public function getRobotsMetaAttribute(): string
+    {
+        $parts = [];
+        $parts[] = ($this->indexing_enabled ?? true) ? 'index' : 'noindex';
+        $parts[] = ($this->follow_links ?? true) ? 'follow' : 'nofollow';
+        return implode(', ', $parts);
+    }
+
+    /**
      * Get logo URL
      */
     public function getLogoUrlAttribute(): ?string
     {
-        return $this->logo ? Storage::url($this->logo) : null;
-    }
-
-    /**
-     * Get dark logo URL
-     */
-    public function getLogoDarkUrlAttribute(): ?string
-    {
-        return $this->logo_dark ? Storage::url($this->logo_dark) : null;
+        return $this->logo ? asset('storage/' . $this->logo) : null;
     }
 
     /**
@@ -89,7 +115,7 @@ class SeoSetting extends Model
      */
     public function getFaviconUrlAttribute(): ?string
     {
-        return $this->favicon ? Storage::url($this->favicon) : null;
+        return $this->favicon ? asset('storage/' . $this->favicon) : null;
     }
 
     /**
@@ -97,61 +123,6 @@ class SeoSetting extends Model
      */
     public function getOgImageUrlAttribute(): ?string
     {
-        return $this->og_image ? Storage::url($this->og_image) : null;
-    }
-
-    /**
-     * Generate robots meta tag
-     */
-    public function getRobotsMetaAttribute(): string
-    {
-        $parts = [];
-        $parts[] = $this->indexing_enabled ? 'index' : 'noindex';
-        $parts[] = $this->follow_links ? 'follow' : 'nofollow';
-        return implode(', ', $parts);
-    }
-
-    /**
-     * Generate structured data JSON-LD
-     */
-    public function getStructuredDataJsonAttribute(): string
-    {
-        $data = [
-            '@context' => 'https://schema.org',
-            '@type' => 'Organization',
-            'name' => $this->business_name ?? $this->site_title,
-            'url' => config('app.url'),
-            'logo' => $this->logo_url,
-            'description' => $this->meta_description,
-            'address' => [
-                '@type' => 'PostalAddress',
-                'addressLocality' => $this->business_city,
-                'addressCountry' => $this->business_country,
-                'streetAddress' => $this->business_address,
-            ],
-            'contactPoint' => [
-                '@type' => 'ContactPoint',
-                'telephone' => $this->business_phone,
-                'email' => $this->business_email,
-                'contactType' => 'customer service',
-            ],
-            'sameAs' => array_filter([
-                $this->facebook_url,
-                $this->twitter_handle ? "https://twitter.com/{$this->twitter_handle}" : null,
-                $this->instagram_url,
-                $this->linkedin_url,
-                $this->youtube_url,
-            ]),
-        ];
-
-        // Merge with custom structured data if exists
-        if ($this->structured_data) {
-            $custom = json_decode($this->structured_data, true);
-            if (is_array($custom)) {
-                $data = array_merge($data, $custom);
-            }
-        }
-
-        return json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        return $this->og_image ? asset('storage/' . $this->og_image) : null;
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SeoSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class SeoController extends Controller
 {
@@ -40,7 +41,9 @@ class SeoController extends Controller
 
         $seo = SeoSetting::firstOrCreate([]);
         $seo->update($validated);
-        SeoSetting::clearCache(); // ✅ مسح الكاش
+        
+        // مسح الكاش
+        Cache::forget('seo_settings');
 
         return back()->with('success', 'تم تحديث الإعدادات الأساسية بنجاح');
     }
@@ -72,7 +75,9 @@ class SeoController extends Controller
         }
 
         $seo->save();
-        SeoSetting::clearCache(); // ✅ مسح الكاش
+        
+        // مسح الكاش
+        Cache::forget('seo_settings');
 
         return back()->with('success', 'تم تحديث الصور بنجاح');
     }
@@ -92,7 +97,8 @@ class SeoController extends Controller
 
         $seo = SeoSetting::firstOrCreate([]);
         $seo->update($validated);
-        SeoSetting::clearCache(); // ✅ مسح الكاش
+        
+        Cache::forget('seo_settings');
 
         return back()->with('success', 'تم تحديث روابط السوشيال ميديا بنجاح');
     }
@@ -111,7 +117,8 @@ class SeoController extends Controller
 
         $seo = SeoSetting::firstOrCreate([]);
         $seo->update($validated);
-        SeoSetting::clearCache(); // ✅ مسح الكاش
+        
+        Cache::forget('seo_settings');
 
         return back()->with('success', 'تم تحديث إعدادات Google بنجاح');
     }
@@ -126,21 +133,19 @@ class SeoController extends Controller
             'custom_head_scripts' => 'nullable|string|max:10000',
             'custom_body_scripts' => 'nullable|string|max:10000',
             'structured_data' => 'nullable|string|max:10000',
-            'sitemap_enabled' => 'boolean',
             'sitemap_frequency' => 'nullable|in:always,hourly,daily,weekly,monthly,yearly,never',
             'sitemap_priority' => 'nullable|numeric|between:0,1',
-            'indexing_enabled' => 'boolean',
-            'follow_links' => 'boolean',
         ]);
-        
-        // تحويل checkboxes
+
+        // Handle checkboxes
         $validated['sitemap_enabled'] = $request->has('sitemap_enabled');
         $validated['indexing_enabled'] = $request->has('indexing_enabled');
         $validated['follow_links'] = $request->has('follow_links');
 
         $seo = SeoSetting::firstOrCreate([]);
         $seo->update($validated);
-        SeoSetting::clearCache(); // ✅ مسح الكاش
+        
+        Cache::forget('seo_settings');
 
         return back()->with('success', 'تم تحديث الإعدادات المتقدمة بنجاح');
     }
@@ -150,8 +155,6 @@ class SeoController extends Controller
      */
     public function generateSitemap()
     {
-        $seo = SeoSetting::getCached();
-        
         $urls = [
             ['loc' => url('/'), 'priority' => '1.0', 'changefreq' => 'daily'],
             ['loc' => url('/login'), 'priority' => '0.5', 'changefreq' => 'monthly'],
@@ -182,11 +185,15 @@ class SeoController extends Controller
      */
     public function robotsTxt()
     {
-        $seo = SeoSetting::getCached();
-        $content = $seo->robots_txt ?? "User-agent: *\nAllow: /\n\nSitemap: " . url('/sitemap.xml');
+        $seo = SeoSetting::first();
+        
+        $content = $seo && $seo->robots_txt 
+            ? $seo->robots_txt 
+            : "User-agent: *\nAllow: /\n\nSitemap: " . url('/sitemap.xml');
+
         return response($content, 200, ['Content-Type' => 'text/plain']);
     }
-    
+
     /**
      * إدارة SEO للصفحات
      */
