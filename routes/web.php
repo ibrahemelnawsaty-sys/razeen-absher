@@ -318,3 +318,13 @@ Route::get('/debug-seo', function () {
         'data' => $seo->toArray(),
     ]);
 });
+
+// ⚠️ Route للتشخيص - احذفه بعد حل المشكلة
+Route::get('/test-csrf', function () {
+    return response()->json([
+        'csrf_token' => csrf_token(),
+        'session_id' => session()->getId(),
+        'session_driver' => config('session.driver'),
+        'session_table_exists' => \Schema::hasTable('sessions'),
+    ]);
+});
