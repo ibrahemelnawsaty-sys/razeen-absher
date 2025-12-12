@@ -45,6 +45,32 @@ class LoginController extends Controller
     }
 
     /**
+     * Quick login for development (disable in production)
+     */
+    public function quickLogin(Request $request)
+    {
+        // ⚠️ تأكد من تعطيل هذا في الإنتاج
+        if (config('app.env') === 'production') {
+            abort(404);
+        }
+
+        $request->validate([
+            'email' => 'required|email|exists:users,email'
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return back()->withErrors(['email' => 'المستخدم غير موجود']);
+        }
+
+        // تسجيل الدخول مباشرة
+        Auth::login($user, true);
+
+        return redirect()->intended($this->redirectPath());
+    }
+
+    /**
      * Handle login with 2FA support
      */
     protected function authenticated(Request $request, $user)

@@ -26,6 +26,11 @@ Route::get('/terms-conditions', function () {
 // Authentication Routes
 Auth::routes();
 
+// Quick Login for Development (⚠️ disable in production)
+if (config('app.env') !== 'production') {
+    Route::post('/login/quick', [App\Http\Controllers\Auth\LoginController::class, 'quickLogin'])->name('login.quick');
+}
+
 // Two Factor Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/two-factor', [TwoFactorController::class, 'show'])->name('2fa.show');
